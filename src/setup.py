@@ -27,7 +27,7 @@ setup(
     packages=['pybkick', 'pybkick_tests'],
     zip_safe=True,
     include_package_data=False,
-    install_requires=['pyserial'],
+    install_requires=['pyserial', 'pexpect'],
     test_suite='nose.collector',
     tests_require=['mock', 'nose', 'coverage'],
     entry_points=GLOBAL_ENTRY_POINTS,
