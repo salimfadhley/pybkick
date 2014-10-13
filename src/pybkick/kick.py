@@ -1,22 +1,14 @@
 import logging
-import serial
-from contextlib import contextmanager
-from fdpexpect import fdspawn
-
-@contextmanager
-def connect(port=r'/dev/ttyACM0'):
-    ser = serial.Serial(port, timeout=1)
-    yield fdspawn(ser)
-    ser.close()
-    
-log = logging.getLogger(__name__)
+from pyboard import Pyboard
 
 def main():
     text = ["import pyb", "pyb.LED(1).on()"]
-    with connect() as ser:
-        for line in text:
-            ser.expect_exact('>>>', timeout=1)
-            ser.send("%s\n" % line)
+    
+    pb = Pyboard('/dev/ttyACM0')
+    
+    with pb.raw_repl():
+        pb.exec("import pyb")
+        pb.exec("pyb.LED(4).on()")
         
 if __name__ == '__main__':
     logging.basicConfig()

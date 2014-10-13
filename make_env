@@ -1,0 +1,4 @@
+#! /bin/bash
+DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
+PYTHON=`which python3`
+virtualenv $DIR/venv --prompt="(pbkick)" --python=$PYTHON --clear
