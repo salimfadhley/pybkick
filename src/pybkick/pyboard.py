@@ -73,9 +73,9 @@ class Pyboard:
         self.exit_raw_repl()
 
     def eval(self, expression):
-        ret = self.exec('print({})'.format(expression))
-        ret = ret.strip()
-        return ret
+        eval_expression = 'print(repr({}))'.format(expression)
+        with self.raw_repl():
+            return eval(self.exec(eval_expression))
 
     def exec(self, command):
         command_bytes = bytes(command, encoding='ascii')
@@ -103,7 +103,13 @@ class Pyboard:
     def get_time(self):
         t = str(self.eval('pyb.RTC().datetime()'), encoding='ascii')[1:-1].split(', ')
         return int(t[4]) * 3600 + int(t[5]) * 60 + int(t[6])
-
+    
+    def ls(self, dir='.'):
+        command = '__import__("os").listdir("{dir}")'.format(dir=dir)
+        with self.raw_repl():
+            return self.eval(command)
+            
+        
 def execfile(filename, device='/dev/ttyACM0'):
     pyb = Pyboard(device)
     pyb.enter_raw_repl()
