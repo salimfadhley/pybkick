@@ -16,11 +16,13 @@ class TestRemoteOperations(unittest.TestCase):
         
     def test_eval_ints(self):
         statement = "1+1"
-        result = self.pb.eval(statement)
+        with self.pb.raw_repl():
+            result = self.pb.eval(statement)
         self.assertEqual(result, 2)
             
     def test_eval_strings(self):
         statement = "'one' + 'one'"
-        result = self.pb.eval(statement)
+        with self.pb.raw_repl():
+            result = self.pb.eval(statement)
         self.assertEqual(result, 'oneone')
             

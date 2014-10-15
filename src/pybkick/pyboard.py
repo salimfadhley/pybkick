@@ -33,6 +33,7 @@ class PyboardError(BaseException):
 class Pyboard:
     def __init__(self, serial_device):
         self.serial = serial.Serial(serial_device)
+        self.in_raw_repl = False
 
     def close(self):
         self.serial.close()
@@ -55,6 +56,7 @@ class Pyboard:
         return data
 
     def enter_raw_repl(self):
+        assert not self.in_raw_repl, "raw_repl is already active!"
         self.serial.write(b'\r\x03') # ctrl-C: interrupt any running program
         self.serial.write(b'\r\x01') # ctrl-A: enter raw REPL
         self.serial.write(b'\x04') # ctrl-D: soft reset
@@ -62,9 +64,12 @@ class Pyboard:
         if not data.endswith(b'raw REPL; CTRL-B to exit\r\n>'):
             print(data)
             raise PyboardError('could not enter raw repl')
+        self.in_raw_repl = True
 
     def exit_raw_repl(self):
+        assert self.in_raw_repl, "raw_repl was not active!"
         self.serial.write(b'\r\x02') # ctrl-B: enter friendly REPL
+        self.in_raw_repl = False
         
     @contextmanager
     def raw_repl(self):
@@ -73,9 +78,9 @@ class Pyboard:
         self.exit_raw_repl()
 
     def eval(self, expression):
+        assert self.in_raw_repl, "raw_repl must be active!"
         eval_expression = 'print(repr({}))'.format(expression)
-        with self.raw_repl():
-            return eval(self.exec(eval_expression))
+        return eval(self.exec(eval_expression))
 
     def exec(self, command):
         command_bytes = bytes(command, encoding='ascii')
