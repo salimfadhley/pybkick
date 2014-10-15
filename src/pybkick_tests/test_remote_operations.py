@@ -1,3 +1,5 @@
+import random
+import string
 import unittest
 from pybkick.pyboard import Pyboard
 
@@ -25,4 +27,19 @@ class TestRemoteOperations(unittest.TestCase):
         with self.pb.raw_repl():
             result = self.pb.eval(statement)
         self.assertEqual(result, 'oneone')
+        
+    def test_read_file(self):
+        filename = 'boot.py'
+        with self.pb.raw_repl():
+            thetext = self.pb.read_file(filename)
+        self.assertTrue(thetext.startswith("# boot.py -- run on boot-up"))
+        
+    def test_write_file(self):
+        filename = "foo.txt"
+        sample_text = "".join(random.sample(string.ascii_lowercase, 12))
+        with self.pb.raw_repl():
+            self.pb.write_file(file_path=filename, data=sample_text)
+            self.assertEqual(self.pb.read_file(filename), sample_text)
+            
+            
             

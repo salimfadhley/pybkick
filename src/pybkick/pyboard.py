@@ -78,9 +78,20 @@ class Pyboard:
         self.exit_raw_repl()
 
     def eval(self, expression):
+        """Execute an expression on the pyboard, returning it's value back to Python.
+        Only works for expressions that return reprs that can be evaled
+        """
         assert self.in_raw_repl, "raw_repl must be active!"
-        eval_expression = 'print(repr({}))'.format(expression)
-        return eval(self.exec(eval_expression))
+        eval_expression = '__import__(\'sys\').stdout.write(repr({}))'.format(expression)
+        returned_expression = self.exec(eval_expression)
+        try:
+            return eval(returned_expression)
+        except SyntaxError:
+            
+            import pdb
+            pdb.set_trace()
+            
+            raise RuntimeError("Invalid python returned: %s" % returned_expression)
 
     def exec(self, command):
         command_bytes = bytes(command, encoding='ascii')
@@ -113,6 +124,23 @@ class Pyboard:
         command = '__import__("os").listdir("{dir}")'.format(dir=dir)
         with self.raw_repl():
             return self.eval(command)
+        
+    def read_file(self, file_path):
+        expression = "open({file_path}).read()".format(
+            file_path=repr(file_path)
+        )
+        foo = self.eval(expression)        
+        return foo
+    
+    def write_file(self, file_path, data, mode='w'):
+        expression = "open({file_path},{mode}).write({data})".format(
+            file_path=repr(file_path),
+            mode=repr(mode),
+            data=repr(data)
+        )
+        
+        foo = self.eval(expression)        
+        return foo
             
         
 def execfile(filename, device='/dev/ttyACM0'):
