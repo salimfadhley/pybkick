@@ -36,9 +36,11 @@ class TestRemoteOperations(unittest.TestCase):
         
     def test_write_file(self):
         filename = "foo.txt"
-        sample_text = "".join(random.sample(string.ascii_lowercase, 12))
+        sample_size = 12
+        sample_text = "".join(random.sample(string.ascii_lowercase, sample_size))
         with self.pb.raw_repl():
-            self.pb.write_file(file_path=filename, data=sample_text)
+            length = self.pb.write_file(file_path=filename, data=sample_text)
+            self.assertEqual(sample_size, length)
             self.assertEqual(self.pb.read_file(filename), sample_text)
             
             

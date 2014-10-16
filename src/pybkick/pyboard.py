@@ -107,8 +107,7 @@ class Pyboard:
             print(data)
             raise PyboardError('timeout waiting for EOF reception')
         if data.startswith(b'Traceback') or data.startswith(b'  File '):
-            print(data)
-            raise PyboardError('command failed')
+            raise PyboardError(data, command)
         return data[:-2]
 
     def execfile(self, filename):
@@ -133,14 +132,21 @@ class Pyboard:
         return foo
     
     def write_file(self, file_path, data, mode='w'):
-        expression = "open({file_path},{mode}).write({data})".format(
+        """This function intentionally involved using context managers, or more sophisticated
+        python syntaxes which might auto-close, so that we can have a single eval-able expression
+        that returns the number of bytes written.
+        """
+        self.exec('tmpfile = open({file_path},{mode})'.format(
             file_path=repr(file_path),
-            mode=repr(mode),
+            mode=repr(mode))
+        )
+        expression = "tmpfile.write({data})".format(
             data=repr(data)
         )
-        
-        foo = self.eval(expression)        
-        return foo
+        result = self.eval(expression)
+        self.exec('tmpfile.close()')
+                
+        return result
             
         
 def execfile(filename, device='/dev/ttyACM0'):
