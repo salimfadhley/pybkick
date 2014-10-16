@@ -39,6 +39,14 @@ class TestKick(unittest.TestCase):
                  dst='tmp',
                  entry_point=None
             )
+            
+    def testKickTestData(self):
+        test_dir = pkg_resources.resource_filename(__name__, 'test_data')
+        kick(port='/dev/ttyACM0',
+             src=missing_test_data_path,
+             dst='tmp',
+             entry_point=None
+        )
                 
         
        

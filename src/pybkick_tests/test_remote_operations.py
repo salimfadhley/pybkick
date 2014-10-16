@@ -2,6 +2,7 @@ import random
 import string
 import unittest
 from pybkick.pyboard import Pyboard
+import pkg_resources
 
 class TestRemoteOperations(unittest.TestCase):
     
@@ -12,10 +13,11 @@ class TestRemoteOperations(unittest.TestCase):
         self.pb.close()
     
     def test_ls(self):
-        result = self.pb.ls('.')
-        self.assertIsInstance(result, list)
-        self.assertTrue('boot.py' in result)
-        
+        with self.pb.raw_repl():
+            result = self.pb.ls('.')
+            self.assertIsInstance(result, list)
+            self.assertTrue('boot.py' in result)
+            
     def test_eval_ints(self):
         statement = "1+1"
         with self.pb.raw_repl():
@@ -42,6 +44,18 @@ class TestRemoteOperations(unittest.TestCase):
             length = self.pb.write_file(file_path=filename, data=sample_text)
             self.assertEqual(sample_size, length)
             self.assertEqual(self.pb.read_file(filename), sample_text)
+            
+    def test_file_delete(self):
+        random_filename = 'test_%s.txt' % "".join(random.sample(string.ascii_lowercase, 12))
+        with self.pb.raw_repl():
+            try:
+                self.pb.write_file(file_path=random_filename)
+                self.assertTrue(self.pb.file_exists(random_filename))
+            finally:
+                self.pb.rm(random_filename)
+            self.assertFalse(self.pb.file_exists(random_filename))
+            
+    
             
             
             

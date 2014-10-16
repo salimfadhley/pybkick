@@ -26,6 +26,7 @@ This script can also be run directly.  To execute a local script, use:
 import time
 import serial
 from contextlib import contextmanager
+import posixpath
 
 class PyboardError(BaseException):
     pass
@@ -120,9 +121,8 @@ class Pyboard:
         return int(t[4]) * 3600 + int(t[5]) * 60 + int(t[6])
     
     def ls(self, dir='.'):
-        command = '__import__("os").listdir("{dir}")'.format(dir=dir)
-        with self.raw_repl():
-            return self.eval(command)
+        statement = '__import__("os").listdir("{dir}")'.format(dir=dir)
+        return self.eval(statement)
         
     def read_file(self, file_path):
         expression = "open({file_path}).read()".format(
@@ -131,7 +131,7 @@ class Pyboard:
         foo = self.eval(expression)        
         return foo
     
-    def write_file(self, file_path, data, mode='w'):
+    def write_file(self, file_path, data='', mode='w'):
         """This function intentionally involved using context managers, or more sophisticated
         python syntaxes which might auto-close, so that we can have a single eval-able expression
         that returns the number of bytes written.
@@ -147,6 +147,14 @@ class Pyboard:
         self.exec('tmpfile.close()')
                 
         return result
+    
+    def file_exists(self, file_path):
+        dir_path, file_name = posixpath.split(file_path)
+        return file_name in self.ls(dir_path)
+    
+    def rm(self, file_path):
+        statement = '__import__("os").unlink({file_path})'.format(file_path=repr(file_path))
+        return self.exec(statement)
             
         
 def execfile(filename, device='/dev/ttyACM0'):
