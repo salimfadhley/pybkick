@@ -57,3 +57,4 @@ target/
 # Eclipse
 .project
 .pydevproject
+/README.md~
