@@ -33,8 +33,12 @@ class PyboardError(BaseException):
 
 class Pyboard:
     def __init__(self, serial_device):
+        self.serial_device = serial_device
         self.serial = serial.Serial(serial_device)
         self.in_raw_repl = False
+        
+    def __repr__(self):
+        return "{}(serial_device={})".format(self.__class__.__name__, repr(self.serial_device))
 
     def close(self):
         self.serial.close()
@@ -148,13 +152,27 @@ class Pyboard:
                 
         return result
     
+    def mkdir(self, dir_path):
+        """Make a directory if it does not exist.
+        """
+        if not self.file_exists(dir_path):
+            statement = 'import os;os.mkdir({dir_path})'.format(dir_path=repr(dir_path))
+            self.exec(statement)
+    
     def file_exists(self, file_path):
         dir_path, file_name = posixpath.split(file_path)
-        return file_name in self.ls(dir_path)
+        try:
+            listing = self.ls(dir_path)
+        except PyboardError:
+            return False
+        return file_name in listing
     
     def rm(self, file_path):
         statement = '__import__("os").unlink({file_path})'.format(file_path=repr(file_path))
         return self.exec(statement)
+    
+    def rmdir(self, dir_path):
+        pass
             
         
 def execfile(filename, device='/dev/ttyACM0'):

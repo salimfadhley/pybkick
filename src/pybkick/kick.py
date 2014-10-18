@@ -2,6 +2,7 @@ import os
 import logging
 from .pyboard import Pyboard
 import argparse
+import posixpath
 
 log = logging.getLogger(__name__)
 
@@ -14,26 +15,24 @@ class MissingSourceCode(RuntimeError):
     """
 
 
-def kick(port, src, dst, entry_point, delay=1):
+def kick(port, src, dst='', entry_point=None, delay=1):
     if not os.path.exists(src):
         raise MissingSourceCode('%s does not exist' % src)
     pb = Pyboard(port)
     with pb.raw_repl():
-        for file_path in os.walk(src):
-            log.info("Kicking %s", file_path)
-            kick_single_file(pb, file_path, src, dst)
+        for dirpath, dirnames, filenames in os.walk(src):
+            for filename in filenames:
+                file_path = os.path.join(dirpath, filename)
+                log.info("Kicking %s", file_path)
+                kick_single_file(pb, file_path, src, dst)
             
 
 def kick_single_file(pb, file_path, src, dst):
-    statement = get_kick_statement(file_path, src, dst)
-    pb.exec(statement)
-    
-
-def get_kick_statement(file_path, src, dst):
-    """Generates a python statement that will re-create the specified file in dst on the pyboard
-    """
-    return "import pyb; pyb.LED(1).on()"
-
+    rel_path = os.path.relpath(file_path, src)
+    target_path = posixpath.join(dst, rel_path)
+    log.info("Copying {} to pb:{}".format(file_path, target_path))
+    data = open(file_path).read()
+    return pb.write_file(target_path, data)
 
 def cmd_line_parser():
     parser = argparse.ArgumentParser()

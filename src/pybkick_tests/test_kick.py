@@ -4,6 +4,7 @@ import mock
 import unittest
 import pkg_resources
 from pybkick.kick import kick, main as kick_main, MissingSourceCode
+from pybkick.pyboard import Pyboard
 
 class TestKick(unittest.TestCase):
     """Test that we can kick code over to the PyBoard
@@ -15,7 +16,6 @@ class TestKick(unittest.TestCase):
         kick(
              port='/dev/ttyACM0',
              src=test_data_path,
-             dst='tmp',
              entry_point=None
         )
         
@@ -42,11 +42,20 @@ class TestKick(unittest.TestCase):
             
     def testKickTestData(self):
         test_dir = pkg_resources.resource_filename(__name__, 'test_data')
-        kick(port='/dev/ttyACM0',
-             src=missing_test_data_path,
-             dst='tmp',
-             entry_point=None
+        port = '/dev/ttyACM0'
+        kick(port=port,
+             src=test_dir
         )
+        
+        pb = Pyboard(port)
+        with pb.raw_repl():
+            for filename in ['a.txt', 'b.txt']:
+                self.assertTrue(pb.file_exists(filename))
+                pb.rm(filename)
+                self.assertFalse(pb.file_exists(filename))
+
+
+            
                 
         
        
