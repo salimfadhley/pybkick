@@ -15,7 +15,7 @@ class MissingSourceCode(RuntimeError):
     """
 
 
-def kick(port, src, dst='', entry_point=None, delay=1):
+def kick(port, src, dst='', entry_point=None):
     if not os.path.exists(src):
         raise MissingSourceCode('%s does not exist' % src)
     pb = Pyboard(port)
