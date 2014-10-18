@@ -44,6 +44,7 @@ class TestRemoteOperations(unittest.TestCase):
             length = self.pb.write_file(file_path=filename, data=sample_text)
             self.assertEqual(sample_size, length)
             self.assertEqual(self.pb.read_file(filename), sample_text)
+            self.pb.rm('foo.txt')
             
     def test_file_delete(self):
         random_filename = 'test_%s.txt' % "".join(random.sample(string.ascii_lowercase, 12))
