@@ -11,7 +11,7 @@ PROJECT_URL = "https://github.com/salimfadhley/pybkick"
 SHORT_DESCRIPTION = 'Python tools for pushing code onto a PyBoard.'
 
 try:
-    DESCRIPTION = open(os.path.join(PROJECT_ROOT, "README.md")).read()
+    DESCRIPTION = open(os.path.join(PROJECT_ROOT, "../README.md")).read()
 except IOError:
     DESCRIPTION = SHORT_DESCRIPTION
 
@@ -42,7 +42,7 @@ setup(
         'License :: OSI Approved :: MIT License',
         'Natural Language :: English',
         'Operating System :: OS Independent',
-        'Programming Language :: Python :: 2.7',
+        'Programming Language :: Python :: 3.4',
         'Topic :: Software Development :: Testing',
     ],
 )

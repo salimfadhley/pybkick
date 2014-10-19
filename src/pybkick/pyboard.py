@@ -25,6 +25,7 @@ This script can also be run directly.  To execute a local script, use:
 
 import time
 import serial
+import pkg_resources
 from contextlib import contextmanager
 import posixpath
 
@@ -36,6 +37,7 @@ class Pyboard:
         self.serial_device = serial_device
         self.serial = serial.Serial(serial_device)
         self.in_raw_repl = False
+        self.pybkick_lib_active = False
         
     def __repr__(self):
         return "{}(serial_device={})".format(self.__class__.__name__, repr(self.serial_device))
@@ -173,6 +175,30 @@ class Pyboard:
     
     def rmdir(self, dir_path):
         pass
+    
+    @contextmanager
+    def pybkick_lib(self, lib_file='pybkick_lib.py'):
+        """Push a helpful library of code that makes remote file operations
+        much easier. Also activates a raw_repl.
+        """
+        from pybkick import __version__ as pybkick_version
+        
+        lib_content = pkg_resources.resource_string('pybkick.micropython', lib_file).decode('utf-8').format(
+            version = pybkick_version,
+        )
+        
+        raw_repl = self.raw_repl()
+        raw_repl.__enter__()
+        
+        try:
+            self.write_file(lib_file, lib_content)
+            self.pybkick_lib_active = True
+            yield
+        finally:
+            self.rm(lib_file)
+            raw_repl.__exit__(None, None, None)
+            self.pybkick_lib_active = False
+        
             
         
 def execfile(filename, device='/dev/ttyACM0'):
